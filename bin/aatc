@@ -7,6 +7,10 @@ require 'aatc'
 begin
   Aatc.run(ARGV)
 rescue StandardError => e
-  $stderr.puts "ERROR: #{e.message}"
+  if Aatc.debug?
+    raise e
+  else
+    $stderr.puts "ERROR: #{e.message}"
+  end
   exit(1)
 end

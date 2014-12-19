@@ -29,11 +29,10 @@ module Aatc
       case subcommand.to_sym
       when *SUBCOMMANDS
         require "aatc/#{subcommand}"
-        class_name    = subcommand
-        class_name[0] = subcommand[0].upcase
+        class_name    = subcommand.capitalize
 
         subcmd_class = const_get "Aatc::#{class_name}"
-        subcmd.new.run(args)
+        subcmd_class.new.run(args)
 
       else
         fail "There is no '#{subcommand}' subcommand!"
@@ -43,7 +42,7 @@ module Aatc
     def process_param(param)
       case param
       when '-d', '--debug'
-        debug = true
+        self.debug = true
 
       else
         fail "Invalid parameter #{param}"
