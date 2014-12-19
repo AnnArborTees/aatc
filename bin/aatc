@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+$stdout.puts 'MANUALLY RUNNING RAKE INSTALL. THIS IS ONLY FOR DEV.'
+`rake install`
+require 'aatc'
+
+begin
+  Aatc.run(ARGV)
+rescue StandardError => e
+  $stderr.puts "ERROR: #{e.message}"
+  exit(1)
+end
