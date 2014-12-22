@@ -13,4 +13,33 @@ module CommandSpecHelpers
 
     proc { cmd.send(name, args, &block) }
   end
+
+  def valid_apps_yml
+    @valid_apps_yml ||= %(
+      apps:
+        -
+          name: first-app
+          path: ~/aatc_test/what-up
+          open_release: release-2014-07-02
+          closed_releases:
+            - release-2014-05-22
+            - release-2014-06-15
+
+        -
+          name: other-app
+          path: ~/aatc_test/other-app
+          closed_releases:
+            - release-2014-05-22
+            - release-2014-06-15
+
+        -
+          name: unreleased
+          open_release: release-2014-07-02
+          path: ~/somewhere/else
+    )
+  end
+
+  def config(force = false)
+    cmd.send(:config, force)
+  end
 end

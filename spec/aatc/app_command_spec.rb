@@ -1,52 +1,8 @@
 require 'spec_helper'
 require 'aatc'
 require 'aatc/app_command'
-begin
-  require 'byebug'
-rescue StandardError => e
-end
 
 describe Aatc::AppCommand, type: :command do
-  let(:valid_apps_yml) do
-    %(
-      apps:
-        -
-          name: first-app
-          path: ~/aatc_test/what-up
-          closed_releases:
-            - release-2014-05-22
-            - release-2014-06-15
-
-        -
-          name: other-app
-          path: ~/aatc_test/other-app
-          closed_releases:
-            - release-2014-05-22
-            - release-2014-06-15
-
-        -
-          name: unreleased
-          path: ~/somewhere/else
-    )
-  end
-
-  def config(force = false)
-    cmd.send(:config, force)
-  end
-
-  before(:all) do
-    Aatc::AppCommand.const_set 'CONFIG_PATH', 'aatc'
-  end
-
-  before(:each) do
-    FakeFS.activate!
-
-    Dir.mkdir(Aatc::AppCommand::CONFIG_PATH)
-    File.open(Aatc::AppCommand::CONFIG_PATH + '/apps.yml', 'w+') do |f|
-      f.write(valid_apps_yml)
-    end
-  end
-
   describe '#run_apps' do
     context 'given a valid apps.yml file' do
 

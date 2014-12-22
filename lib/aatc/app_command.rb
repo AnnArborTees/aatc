@@ -2,7 +2,7 @@ require 'yaml'
 
 module Aatc
   class AppCommand
-    CONFIG_PATH = "~/.aatc"
+    include Common
 
     def run_apps(args)
       process_apps_args(args)
@@ -60,7 +60,9 @@ module Aatc
       unless @force
         response = ''
         until response == 'y' || response == 'n'
-          puts "Are you sure you'd like to delete #{@name}? (y/n)"
+          puts "Are you sure you'd like to delete #{@name}? "\
+               "The project file will remain; only the entry "\
+               "in #{config_file} will be removed. (y/n)"
           response = (gets || 'n').downcase.strip
         end
         if response == 'n'
@@ -133,24 +135,6 @@ module Aatc
 
     def nil_thing!(thing)
       fail "Invalid (nil) #{thing}."
-    end
-
-    def config(force = false)
-      if force || @config.nil?
-        @config = YAML.load_file(config_file)
-      else
-        @config
-      end
-    end
-
-    def save_config!
-      File.open(config_file, 'w') do |f|
-        f.write(config.to_yaml)
-      end
-    end
-
-    def config_file
-      CONFIG_PATH + '/apps.yml'
     end
   end
 end

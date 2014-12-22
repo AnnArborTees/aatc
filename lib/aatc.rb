@@ -4,10 +4,12 @@ require "aatc/common"
 module Aatc
   extend Common
 
+  CONFIG_PATH = "~/.aatc"
+
   SUBCOMMANDS = {
     test: 'test',
     apps: 'app', add_app: 'app', rm_app: 'app',
-    close: 'close'
+    open: 'release', close: 'release'
   }
 
   class << self

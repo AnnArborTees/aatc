@@ -50,6 +50,19 @@ RSpec.configure do |config|
     FakeFS.deactivate!
   end
 
+  config.before(:all) do
+    Aatc.const_set 'CONFIG_PATH', 'aatc'
+  end
+
+  config.before(:each, type: :command) do
+    FakeFS.activate!
+
+    Dir.mkdir(Aatc::CONFIG_PATH)
+    File.open(Aatc::CONFIG_PATH + '/apps.yml', 'w+') do |f|
+      f.write(valid_apps_yml)
+    end
+  end
+
 # The settings below are suggested to provide a good initial experience
 # with RSpec, but feel free to customize to your heart's content.
 =begin
