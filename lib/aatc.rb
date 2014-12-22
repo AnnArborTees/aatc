@@ -51,7 +51,7 @@ module Aatc
       case subcmd_method
       when *SUBCOMMANDS.keys
         location = SUBCOMMANDS[subcmd_method]
-        require "aatc/#{location}"
+        require "aatc/#{location}_command"
         class_name    = camelize(location) + 'Command'
         subcmd_class  = const_get "Aatc::#{class_name}"
 

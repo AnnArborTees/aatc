@@ -6,11 +6,11 @@ describe Aatc do
     Aatc::SUBCOMMANDS.each do |subcommand, filename|
       context "#{subcommand.to_s.gsub('_', '-')}" do
         it 'has an existing, corrosponding file' do
-          expect{require("aatc/#{filename}")}.to_not raise_error
+          expect{require("aatc/#{filename}_command")}.to_not raise_error
         end
 
         it "has a corrosponding class with the run_#{subcommand} method" do
-          require("aatc/#{filename}")
+          require("aatc/#{filename}_command")
           class_name = Aatc.camelize(filename) + 'Command'
           get_class_name = proc {Kernel.const_get "Aatc::#{class_name}"}
 
