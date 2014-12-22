@@ -11,7 +11,6 @@ module CommandSpecHelpers
     return super unless /^run_/ =~ name
     return super unless cmd.respond_to?(name)
 
-    cmd_args = args.empty? ? [[]] : args
-    proc { cmd.send(name, *cmd_args, &block) }
+    proc { cmd.send(name, args, &block) }
   end
 end
