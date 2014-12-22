@@ -6,7 +6,7 @@ module Aatc
 
   SUBCOMMANDS = {
     test: 'test',
-    apps: 'app', add_app: 'app', apps_dir: 'app',
+    apps: 'app', add_app: 'app', rm_app: 'app',
     close: 'close'
   }
 
