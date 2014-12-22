@@ -91,7 +91,7 @@ describe Aatc::AppCommand, type: :command do
 
           allow(cmd).to receive(:gets, &input.method(:gets))
 
-          expect(&run_add_app).to output(/success/).to_stdout
+          expect(&run_add_app).to output(/Successfully/).to_stdout
 
           after_names = cmd.send(:config, true)['apps'].map { |a| a['name'] }
           after_paths = cmd.send(:config, true)['apps'].map { |a| a['path'] }
@@ -107,7 +107,7 @@ describe Aatc::AppCommand, type: :command do
           expect(before_names).to_not include 'new-app'
           expect(before_paths).to_not include '~/some/path'
 
-          expect(&run_add_app('new-app', '~/some/path')).to output(/success/).to_stdout
+          expect(&run_add_app('new-app', '~/some/path')).to output(/Successfully/).to_stdout
 
           after_names = cmd.send(:config, true)['apps'].map { |a| a['name'] }
           after_paths = cmd.send(:config, true)['apps'].map { |a| a['path'] }
