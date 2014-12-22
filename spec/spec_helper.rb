@@ -16,6 +16,7 @@
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 require 'fakefs/safe'
 require 'fakefs/spec_helpers'
+require_relative 'support/command_spec_helpers'
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
@@ -23,6 +24,7 @@ RSpec.configure do |config|
   # assertions if you prefer.
 
   config.include FakeFS::SpecHelpers
+  config.include CommandSpecHelpers, type: :command
 
   config.expect_with :rspec do |expectations|
     # This option will default to `true` in RSpec 4. It makes the `description`
