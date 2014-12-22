@@ -34,8 +34,11 @@ describe Aatc::AppCommand, type: :command do
     cmd.send(:config, force)
   end
 
-  before(:each) do
+  before(:all) do
     Aatc::AppCommand.const_set 'CONFIG_PATH', 'aatc'
+  end
+
+  before(:each) do
     FakeFS.activate!
 
     Dir.mkdir(Aatc::AppCommand::CONFIG_PATH)
@@ -122,7 +125,7 @@ describe Aatc::AppCommand, type: :command do
     end
   end
 
-  describe '#run_rm_app' do
+  describe '#run_rm_app', rm: true do
     context 'when we actually want to remove the app' do
       before(:each) do
         before_names = config['apps'].map { |a| a['name'] }
