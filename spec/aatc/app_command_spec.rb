@@ -48,11 +48,13 @@ describe Aatc::AppCommand, type: :command do
           expect(before_paths).to_not include '~/some/path'
 
           input = StringIO.new
+          # Enter app name.
           input.puts 'new-app'
+          # Enter app path.
           input.puts '~/some/path'
           input.rewind
 
-          allow(cmd).to receive(:gets, &input.method(:gets))
+          stub_input_with(input)
 
           expect(&run_add_app).to output(/Successfully/).to_stdout
 
@@ -96,11 +98,13 @@ describe Aatc::AppCommand, type: :command do
       context 'with no args' do
         it 'asks which app should be removed' do
           input = StringIO.new
+          # Enter app name.
           input.puts 'first-app'
+          # Are you sure?
           input.puts 'y'
           input.rewind
 
-          allow(cmd).to receive(:gets, &input.method(:gets))
+          stub_input_with(input)
 
           expect(&run_rm_app).to output(/was removed/).to_stdout
         end
@@ -109,10 +113,11 @@ describe Aatc::AppCommand, type: :command do
       context 'with an app name argument' do
         it 'asks if you are sure, then removes the app with that name' do
           input = StringIO.new
+          # Are you sure?
           input.puts 'y'
           input.rewind
 
-          allow(cmd).to receive(:gets, &input.method(:gets))
+          stub_input_with(input)
 
           expect(&run_rm_app('first-app')).to output(/was removed/).to_stdout
         end
@@ -139,11 +144,13 @@ describe Aatc::AppCommand, type: :command do
       context 'with no args' do
         it 'asks, and then saying no cancels the deletion' do
           input = StringIO.new
+          # Enter app name.
           input.puts 'first-app'
+          # Are you sure?
           input.puts 'n'
           input.rewind
 
-          allow(cmd).to receive(:gets, &input.method(:gets))
+          stub_input_with(input)
 
           expect(&run_rm_app).to output(/was not removed/).to_stdout
         end
@@ -152,10 +159,11 @@ describe Aatc::AppCommand, type: :command do
       context 'with an app name argument' do
         it 'asks, then saying no cancels the deletion' do
           input = StringIO.new
+          # Are you sure?
           input.puts 'n'
           input.rewind
 
-          allow(cmd).to receive(:gets, &input.method(:gets))
+          stub_input_with(input)
 
           expect(&run_rm_app('first-app')).to output(/was not removed/).to_stdout
         end

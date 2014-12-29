@@ -3,8 +3,8 @@ module CommandSpecHelpers
     @cmd ||= described_class.new
   end
 
-  def respond_to?(name)
-    return super unless /^run_/ =~ name
+  def respond_to?(name, *args)
+    return super || /^run_/ =~ name
   end
 
   def method_missing(name, *args, &block)
@@ -12,6 +12,10 @@ module CommandSpecHelpers
     return super unless cmd.respond_to?(name)
 
     proc { cmd.send(name, args, &block) }
+  end
+
+  def stub_input_with(input)
+    allow(cmd).to receive(:gets, &input.method(:gets))
   end
 
   def valid_apps_yml
@@ -36,10 +40,18 @@ module CommandSpecHelpers
           name: unreleased
           open_release: release-2014-07-02
           path: ~/somewhere/else
+
+        -
+          name: whatever
+          path: ~/some/path
     )
   end
 
   def config(force = false)
     cmd.send(:config, force)
+  end
+
+  def reload_config
+    cmd.send(:config, true)
   end
 end
