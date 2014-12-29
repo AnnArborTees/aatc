@@ -61,6 +61,8 @@ RSpec.configure do |config|
     File.open(Aatc::CONFIG_PATH + '/apps.yml', 'w+') do |f|
       f.write(valid_apps_yml)
     end
+
+    allow(cmd).to receive(:`).and_return 'WARNING: UNSTUBBED ``'
   end
 
 # The settings below are suggested to provide a good initial experience

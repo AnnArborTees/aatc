@@ -14,8 +14,42 @@ module CommandSpecHelpers
     proc { cmd.send(name, args, &block) }
   end
 
+  def expect_clean_git_status
+    expect(cmd).to receive(:`).with('git status')
+      .and_return "nothing to commit, working directory clean"
+  end
+  def expect_git_branch(*args)
+    options = {}
+    options = args.pop if args.last.is_a?(Hash)
+
+    branches = args.flatten
+
+    on = options[:on] || 'master'
+    branches.map! { |b| b == on ? "* #{b}" : b }
+
+    expect(cmd).to receive(:`).with('git branch')
+      .and_return branches.join("\n")
+  end
+  def expect_successful_git_checkout(branch, b = false)
+    expect(cmd).to receive(:`).with("git checkout#{' -b' if b} #{branch}")
+      .and_return "Switched to#{' a new' if b} branch '#{branch}'"
+  end
+  def expect_successful_git_checkout_b(branch)
+    expect_successful_git_checkout(branch, true)
+  end
+  def expect_successful_git_pull(branch)
+    expect(cmd).to receive(:`).with("git pull -u origin #{branch}")
+      .and_return '1 file changed, 5 insertions(+), 2 deletions(-)'
+  end
+
   def stub_input_with(input)
     allow(cmd).to receive(:gets, &input.method(:gets))
+  end
+
+  def stub_chdir_with(dir)
+    expect(Dir).to receive(:chdir).with(dir) { |&block|
+      block.call
+    }
   end
 
   def valid_apps_yml
@@ -43,7 +77,7 @@ module CommandSpecHelpers
 
         -
           name: whatever
-          path: ~/some/path
+          path: ~/whatever/path
     )
   end
 

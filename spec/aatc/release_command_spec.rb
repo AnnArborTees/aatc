@@ -7,14 +7,23 @@ describe Aatc::ReleaseCommand, type: :command do
     context 'with no args' do
       it 'asks me which apps, and what to call the release' do
         input = StringIO.new
-        input.puts 'other-app'
         input.puts 'release-2015-01-01'
+        input.puts 'other-app'
         input.rewind
 
+        stub_chdir_with('~/aatc_test/other-app').twice
         stub_input_with(input)
 
-        # TODO
-        expect(&run_open).to output('something regarding success').to_stdout
+        expect_clean_git_status
+        expect_git_branch('master', 'develop', 'local')
+        expect_successful_git_checkout('develop')
+        expect_successful_git_pull('develop')
+        expect_successful_git_checkout_b('release-2015-01-01')
+
+        expect(&run_open)
+          .to output(/Successfully opened release-2015-01-01 for other-app/).to_stdout
+
+        expect(reload_config['apps'][1]['open_release']).to eq 'release-2015-01-01'
       end
     end
 
@@ -25,9 +34,18 @@ describe Aatc::ReleaseCommand, type: :command do
         input.puts 'first-app'
         input.rewind
 
+        stub_chdir_with('~/aatc_test/what-up')
         stub_input_with(input)
 
-        expect(&run_open).to output(/is currently on release-2014-07-02/).to_stdout
+        expect_clean_git_status
+        expect_git_branch('master', 'whatever')
+
+        expect do
+          expect(&run_open)
+            .to output(/first-app already has an open release \(release-2014-07-02\)/)
+            .to_stderr
+        end
+          .to raise_error
       end
     end
 
@@ -35,16 +53,16 @@ describe Aatc::ReleaseCommand, type: :command do
       it 'opens the given release' do
         expect(config['apps'][1]['open_release']).to be_nil
 
-        expect(Dir).to receive(:chdir).with('~/aatc_test/other-app')
-          .and_call_original
-        expect(cmd).to receive(:`).with('git branch')
-          .and_return "* master\nsome-branch\nother-branch"
-        expect(cmd).to receive(:`).with('git checkout -b release-2015-01-01')
-          # TODO
-          .and_return "whatever this would return on success. nothing?"
+        stub_chdir_with('~/aatc_test/other-app').twice
+        
+        expect_clean_git_status
+        expect_git_branch('master', 'develop', 'ok')
+        expect_successful_git_checkout('develop')
+        expect_successful_git_pull('develop')
+        expect_successful_git_checkout_b('release-2015-01-01')
 
         expect(&run_open('release-2015-01-01', 'other-app'))
-          .to output(/successfully opened release-2015-01-01/).to_stdout
+          .to output(/Successfully opened release-2015-01-01 for other-app/).to_stdout
 
         expect(reload_config['apps'][1]['open_release']).to eq 'release-2015-01-01'
       end

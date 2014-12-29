@@ -132,9 +132,5 @@ module Aatc
         end
       end
     end
-
-    def nil_thing!(thing)
-      fail "Invalid (nil) #{thing}."
-    end
   end
 end
