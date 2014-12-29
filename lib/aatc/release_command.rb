@@ -15,9 +15,10 @@ module Aatc
         @apps ||= []
         puts %(
           Enter a comma separated list of apps on which you'd like
-          to open this release.
+          to open this release (or 'all' for every app).
         ).squeeze(' ')
         @apps = (gets || nil_thing!('apps')).split(',').map(&:strip)
+        @apps = apps_by_name.keys if @apps.downcase == 'all'
       end
 
       @apps.reject!(&:empty?)
@@ -127,7 +128,6 @@ module Aatc
               case `git checkout -b #{@release}`
               when /Switched to a new branch '#{@release}'/
                 puts "Successfully opened #{@release} for #{app_name}."
-                # TODO make sure this goes into config file on save.
                 app['open_release'] = @release
                 succeeded << app
 
