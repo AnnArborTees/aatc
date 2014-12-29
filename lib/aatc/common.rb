@@ -61,7 +61,7 @@ module Aatc
       fail "Invalid (nil) #{thing}."
     end
 
-    def weird_git!(command, path)
+    def weird_git!(command, path, output = nil)
       fail %(
         Got an unexpected output from running `git #{command}` inside 
         #{path}. Either you are rebasing or in some other weird state
@@ -69,6 +69,7 @@ module Aatc
         respository. If nothing seems wrong, this could be an aatc bug.
         It's possible that git has updated and changed its output enough
         to throw me off. If that is the case, then I am sorry.
+        #{output}
       ).squeeze(' ')
     end
   end

@@ -41,6 +41,10 @@ module CommandSpecHelpers
     expect(cmd).to receive(:`).with("git pull -u origin #{branch}")
       .and_return '1 file changed, 5 insertions(+), 2 deletions(-)'
   end
+  def expect_successful_git_push(branch)
+    expect(cmd).to receive(:`).with("git push -u origin #{branch}")
+      .and_return "0bd2488..f70d739  #{branch} -> #{branch}"
+  end
 
   def stub_input_with(input)
     allow(cmd).to receive(:gets, &input.method(:gets))
