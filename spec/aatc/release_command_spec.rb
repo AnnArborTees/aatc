@@ -70,6 +70,29 @@ describe Aatc::ReleaseCommand, type: :command do
   end
 
   describe '#run_close' do
+    context 'when passed "all"' do
+      it 'closes them all', all: true do
+        expect(config['apps'][0]['open_release']).to_not be_nil
+        expect(config['apps'][2]['open_release']).to_not be_nil
+
+        release = 'release-2014-07-02'
+
+        stub_chdir_with('~/aatc_test/what-up').twice
+        stub_chdir_with('~/somewhere/else').twice
+
+        expect_clean_git_status.twice
+        expect_successful_git_checkout(release).twice
+        expect_successful_git_pull(release).twice
+        expect_successful_git_push(release).twice
+
+        expect(&run_close(release, 'all'))
+          .to output(/Successfully/).to_stdout
+
+        expect(config['apps'][0]['open_release']).to be_nil
+        expect(config['apps'][2]['open_release']).to be_nil
+      end
+    end
+
     context 'with no args' do
       it 'Asks the user for input before closing' do
         expect(config['apps'][0]['open_release']).to_not be_nil

@@ -106,6 +106,8 @@ module Aatc
       end
     end
 
+
+
     def run_close(args)
       process_close_args(args)
 
@@ -115,7 +117,12 @@ module Aatc
 
       assure_valid_release_and_apps(
         'release to close',
-        all: -> { apps_by_name.keys.select(&matching_open_release); @all = true }
+        all: lambda do
+          @all = true;
+          apps_by_name.values.select(&matching_open_release).map do |a|
+            a['name']
+          end
+        end
       )
 
       # Make sure the given release matches all apps
@@ -243,8 +250,8 @@ module Aatc
           to open this release (or 'all' for every app).
         ).squeeze(' ')
         @apps = (gets || nil_thing!('apps')).split(',').map(&:strip)
-        @apps = options[:all] if @apps.size == 1 && @apps[0].downcase == 'all'
       end
+      @apps = options[:all].call if @apps.size == 1 && @apps[0].downcase == 'all'
 
       @apps.reject!(&:empty?)
       fail "I need a non-empty list!" if @apps.empty?

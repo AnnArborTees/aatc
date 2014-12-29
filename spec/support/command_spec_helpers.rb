@@ -50,8 +50,8 @@ module CommandSpecHelpers
     allow(cmd).to receive(:gets, &input.method(:gets))
   end
 
-  def stub_chdir_with(dir)
-    expect(Dir).to receive(:chdir).with(dir) { |&block|
+  def stub_chdir_with(*dirs)
+    expect(Dir).to receive(:chdir).with(*dirs) { |&block|
       block.call
     }
   end
