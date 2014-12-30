@@ -1,10 +1,11 @@
 require 'yaml'
 
 module Aatc
-  AppStatus = Struct.new(:path, :open_release) do
+  AppStatus = Struct.new(:path, :open_release, :hotfix) do
     def initialize(hash, path)
       self.path = path
       self.open_release = hash['open_release']
+      self.hotfix = hash['hotfix']
     end
 
     def save
@@ -15,7 +16,8 @@ module Aatc
 
     def to_yaml
       {
-        'open_release' => open_release
+        'open_release' => open_release,
+        'hotfix'       => hotfix
       }
         .to_yaml
     end

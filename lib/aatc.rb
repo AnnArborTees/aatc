@@ -9,7 +9,7 @@ module Aatc
   SUBCOMMANDS = {
     test: 'test',
     apps: 'app', add_app: 'app', rm_app: 'app',
-    open: 'release', close: 'release'
+    open: 'release', close: 'release', hotfix: 'release'
   }
 
   class << self

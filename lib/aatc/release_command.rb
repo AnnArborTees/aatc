@@ -196,6 +196,54 @@ module Aatc
       end
     end
 
+    def run_hotfix(args)
+      process_hotfix_args(args)
+      if (@app.nil? || @name.nil?) || (@app.empty? || @name.empty?)
+        fail "try `aatc hotfix <app-name> <hotfix-name>`"
+      end
+      branch = "hotfix-#{@name}"
+
+      # Check errors...
+      app_configs, unstaged_changes, branch_exists =
+        check_git_status([@app], branch)
+
+      unless branch_exists.empty?
+        fail "Cannot create a hotfix branch for #{@app} called '#{@name}' "\
+             "(branch already exists)."
+      end
+
+      unless unstaged_changes.empty?
+        fail "It is recommended you clean up your current changes if you "\
+             "wish to initiate a hotfix."
+      end
+
+      # Pull from master and checkout hotfix branch.
+      app = app_configs.first
+      app_path = app['path']
+
+      Dir.chdir(app_path) do
+        begin
+          git 'checkout master', /Switched to branch 'master'/
+          git 'pull -u origin master', successful_pull
+          git "checkout -b #{branch}", /Switched to a new branch '#{branch}'/
+
+          status = app_status(app_path)
+          status.hotfix = @name
+          status.save
+
+          git 'add -A'
+          git %_commit -m "HOTFIX INITIATED: #{@name}"_
+
+          puts "You are now working on hotfix #{@name}!"
+          puts "Remember to merge this with the appropriate release after "\
+               "executing `aatc hotfix-close`."
+
+        rescue GitError => e
+          fail e
+        end
+      end
+    end
+
     private
 
     def successful_pull
@@ -217,6 +265,7 @@ module Aatc
       ]
     end
 
+    # TODO uhh this is the same as process_close_args...
     def process_open_args(args)
       args.each do |arg|
         if @release.nil?
@@ -235,6 +284,19 @@ module Aatc
         else
           @apps ||= []
           @apps << arg.strip unless arg.strip.empty?
+        end
+      end
+    end
+
+    def process_hotfix_args(args)
+      args.each do |arg|
+        if @app.nil?
+          @app = arg
+        elsif @name.nil?
+          @name = arg
+        else
+          fail "Too many arguments for hotfix! Please just specify "\
+               "app name, and hotfix name."
         end
       end
     end
@@ -286,13 +348,13 @@ module Aatc
       end
     end
 
-    def check_git_status
+    def check_git_status(apps = nil, branch = nil)
       app_configs      = []
       unstaged_changes = []
       release_exists   = []
       # Second pass: make sure the git repositories in all apps
       # are clean.
-      @apps.each do |app_name|
+      (apps || @apps).each do |app_name|
         app  = apps_by_name[app_name]
         path = app['path']
         app_configs << app
@@ -304,7 +366,7 @@ module Aatc
           when /nothing to commit, working directory clean/,
                /nothing added to commit but untracked files present/ 
 
-            if `git branch`.include?(@release)
+            if `git branch`.include?((branch || @release))
               release_exists << app_name
             end
 
