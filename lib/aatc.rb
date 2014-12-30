@@ -8,8 +8,11 @@ module Aatc
 
   SUBCOMMANDS = {
     test: 'test',
+
     apps: 'app', add_app: 'app', rm_app: 'app',
-    open: 'release', close: 'release', hotfix: 'release'
+
+    open:   'release', close:        'release',
+    hotfix: 'release', hotfix_close: 'release'
   }
 
   class << self

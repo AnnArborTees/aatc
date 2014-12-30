@@ -232,7 +232,7 @@ module Aatc
           status.save
 
           git 'add -A'
-          git %_commit -m "HOTFIX INITIATED: #{@name}"_
+          git %_commit -m "HOTFIX INITIATED: #{@name}"_, successful_commit
 
           puts "You are now working on hotfix #{@name}!"
           puts "Remember to merge this with the appropriate release after "\

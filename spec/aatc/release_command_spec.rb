@@ -3,6 +3,12 @@ require 'aatc'
 require 'aatc/common'
 require 'aatc/release_command'
 
+# TODO Perhaps make these commands do work on the app in the current
+# directory if no app is supplied?
+
+# TODO Also, perhaps make open and close check for in-progress hotfixes
+# and not operate on those apps.
+
 Common = Aatc::Common
 describe Aatc::ReleaseCommand, type: :command do
   describe '#run_open' do
@@ -147,6 +153,16 @@ describe Aatc::ReleaseCommand, type: :command do
 
       expect(&run_hotfix('first-app', 'fix-things'))
        .to output(/now working on hotfix fix-things/).to_stdout
+    end
+  end
+
+  describe 'run_hotfix_close' do
+    context 'when not currently working on a hotfix' do
+      it 'issues an error'
+    end
+
+    context 'when the given app is in the middle of a hotfix' do
+      it 'unmarks the hotfix, merges with master/develop, and reminds user to merge release'
     end
   end
 end
