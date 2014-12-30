@@ -1,3 +1,5 @@
+require 'fileutils'
+
 module CommandSpecHelpers
   def cmd
     @cmd ||= described_class.new
@@ -45,6 +47,14 @@ module CommandSpecHelpers
     expect(cmd).to receive(:`).with("git push -u origin #{branch}")
       .and_return "0bd2488..f70d739  #{branch} -> #{branch}"
   end
+  def expect_successful_git_add_a
+    expect(cmd).to receive(:`).with('git add -A').and_return ''
+  end
+  def expect_successful_git_commit(message)
+    expect(cmd).to receive(:`)
+      .with(%_git commit -m "#{message}"_)
+      .and_return '1 file changed, 5 insertions(+), 2 deletions(-)'
+  end
 
   def stub_input_with(input)
     allow(cmd).to receive(:gets, &input.method(:gets))
@@ -56,32 +66,35 @@ module CommandSpecHelpers
     }
   end
 
+  def app_paths
+    ['/aatc_test/what-up',
+     '/aatc_test/other-app',
+     '/somewhere/else',
+     '/whatever/path']
+  end
+
   def valid_apps_yml
-    @valid_apps_yml ||= %(
-      apps:
-        -
-          name: first-app
-          path: ~/aatc_test/what-up
-          open_release: release-2014-07-02
-          closed_releases:
-            - release-2014-05-22
-            - release-2014-06-15
+    @valid_apps_yml ||= (
+      app_paths.each(&FileUtils.method(:mkdir_p))
 
-        -
-          name: other-app
-          path: ~/aatc_test/other-app
-          closed_releases:
-            - release-2014-05-22
-            - release-2014-06-15
+      %(
+        apps:
+          -
+            name: first-app
+            path: /aatc_test/what-up
 
-        -
-          name: unreleased
-          open_release: release-2014-07-02
-          path: ~/somewhere/else
+          -
+            name: other-app
+            path: /aatc_test/other-app
 
-        -
-          name: whatever
-          path: ~/whatever/path
+          -
+            name: unreleased
+            path: /somewhere/else
+
+          -
+            name: whatever
+            path: /whatever/path
+      )
     )
   end
 

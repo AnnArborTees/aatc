@@ -1,9 +1,13 @@
 require 'byebug'
+
 module Aatc
   class ReleaseCommand
+    class GitError < StandardError
+    end
+
     include Common
 
-    # TODO factor this MONSTROSITY
+    # TODO factor this MONSTROSITY (MORE!)
     def run_open(args)
       process_open_args(args)
       assure_valid_release_and_apps('new release')
@@ -11,14 +15,16 @@ module Aatc
       # First pass: make sure no apps have open releases.
       already_open = []
       @apps.each do |app_name|
-        app = apps_by_name[app_name]
-        already_open << app_name if app['open_release']
+        app    = apps_by_name[app_name]
+        status = app_status(app['path'])
+        already_open << app_name if status.open_release
       end
 
       app_configs, unstaged_changes, release_exists = check_git_status
 
-      # If any apps failed the passes, we're done.
       cannot_go_on = false
+
+      # Cannot have apps with unstaged changes.
       unless unstaged_changes.empty?
         repositories = unstaged_changes.size > 1 ? 'repositories' : 'repository'
         have = unstaged_changes.size > 1 ? 'have' : 'has'
@@ -29,6 +35,7 @@ module Aatc
         cannot_go_on = true
       end
 
+      # Apps cannot have an existing git branch with the same name as @release.
       unless release_exists.empty?
         repositories = release_exists.size > 1 ? 'repositories' : 'repository'
         have = release_exists.size > 1 ? 'have' : 'has'
@@ -39,6 +46,7 @@ module Aatc
         cannot_go_on = true
       end
 
+      # Cannot open an app that's already open!
       unless already_open.empty?
         if unstaged_changes.size + release_exists.size > 0
           STDERR.print 'Additionally, '
@@ -59,50 +67,47 @@ module Aatc
       fail 'Fix the aformentioned issues, then try again.' if cannot_go_on
 
       # Now we try to pull from develop
-      failed = {}
+      failed = []
       succeeded = []
 
       app_configs.each do |app|
         app_name = app['name']
+        app_path = app['path']
 
-        Dir.chdir(app['path']) do
-          case `git checkout develop`
-          when /Switched to( a new)? branch 'develop'/
+        Dir.chdir(app_path) do
+          begin
+            git 'checkout develop',        /Switched to( a new)? branch 'develop'/
+            git 'pull -u origin develop',  successful_pull
+            git "checkout -b #{@release}", /Switched to a new branch '#{@release}'/
 
-            case `git pull -u origin develop`
-            when *successful_pull
-              case `git checkout -b #{@release}`
-              when /Switched to a new branch '#{@release}'/
-                puts "Successfully opened #{@release} for #{app_name}."
-                app['open_release'] = @release
-                succeeded << app
+            status = app_status(app_path)
+            status.open_release = @release
+            status.save
 
-              else
-                failed[app_name] = "Could not create new branch for #{app_name}."
-              end
+            git 'add -A'
+            git %_commit -m "RELEASE OPENED: #{@release}"_, successful_commit
+            git "push -u origin #{@release}",               successful_push(@release)
 
-            else
-              failed[app_name] = "Something weird happened when executing"\
-                                 " `git pull -u origin develop` for #{app_name}."
-            end
+            succeeded << app
+            puts "Successfully opened #{@release} for #{app_name}."
 
-          else
-            failed[app_name] = "No develop branch for #{app_name}."
+          rescue GitError => e
+            STDERR.puts "#{app_name}: #{e.message}"
+            failed << app
           end
         end
-      end
 
-      failed.each do |_app_name, error|
-        STDERR.puts error
-      end
-      if succeeded.empty?
-        fail "No apps were successfully released."
-      end
+        failed.each do |_app_name, error|
+          STDERR.puts error
+        end
+        if succeeded.empty?
+          fail "No apps were successfully released."
+        end
 
-      save_config!
-      puts "Successfully opened release #{@release}!"
-      unless failed.empty?
-        puts "Except for on #{failed.keys.join(', ')}."
+        puts "Successfully opened release #{@release}!"
+        unless failed.empty?
+          puts "Except for on #{failed.keys.join(', ')}."
+        end
       end
     end
 
@@ -112,14 +117,15 @@ module Aatc
       process_close_args(args)
 
       matching_open_release = lambda do |a|
-        a['open_release'] == @release
+        app_status(a['path']).open_release == @release
       end
 
       assure_valid_release_and_apps(
         'release to close',
+
         all: lambda do
           @all = true;
-          apps_by_name.values.select(&matching_open_release).map do |a|
+          all_apps.select(&matching_open_release).map do |a|
             a['name']
           end
         end
@@ -127,8 +133,9 @@ module Aatc
 
       # Make sure the given release matches all apps
       unless @all
-        apps = @apps.map { |a| apps_by_name[a] }
+        apps     = @apps.map { |a| apps_by_name[a] }
         bad_apps = apps.reject(&matching_open_release)
+
         unless bad_apps.empty?
           are_is = bad_apps.size > 1 ? 'are' : 'is'
           fail "#{bad_apps.join(', ')} #{are_is} not currently on release "\
@@ -150,43 +157,35 @@ module Aatc
         ).squeeze(' ')
       end
 
-      failed = {}
+      failed = []
       succeeded = []
+
       app_configs.each do |app|
         app_name = app['name']
+        app_path = app['path']
 
-        Dir.chdir(app['path']) do
-          case `git checkout #{@release}`
-          when /Switched to branch '#{@release}'/
+        Dir.chdir(app_path) do
+          begin
+            git "checkout #{@release}",       /Switched to branch '#{@release}'/
+            git "pull -u origin #{@release}", successful_pull
 
-            case `git pull -u origin #{@release}`
-            when *successful_pull
+            status = app_status(app_path)
+            status.open_release = nil
+            status.save
 
-              case `git push -u origin #{@release}`
-              when *successful_push(@release)
-                puts "Successfully closed #{@release} for #{app_name}."
-                app['open_release'] = nil
-                succeeded << app
+            git 'add -A'
+            git %_commit -m "RELEASE CLOSED: #{@release}"_, successful_commit
+            git "push -u origin #{@release}",               successful_push(@release)
 
-              else
-                failed[app_name] = "Couldn't push #{app_name} to origin #{@release}."
-              end
+            succeeded << app
+            puts "Successfully closed #{@release} for #{app_name}!"
 
-            else
-              failed[app_name] = "Couldn't pull #{app_name} from origin #{@release}."
-            end
-
-          else
-            failed[app_name] = "Couldn't checkout #{app_name} #{@release} branch."
+          rescue GitError => e
+            STDERR.puts "#{app_name}: #{e.message}"
+            failed << app
           end
         end
       end
-
-      failed.each do |_app_name, error|
-        STDERR.puts error
-      end
-
-      save_config! unless succeeded.empty?
 
       if succeeded.empty?
         fail "Failed to release any apps."
@@ -201,9 +200,13 @@ module Aatc
 
     def successful_pull
       [
-        /\d+ files? changed, \d+ insertions?\(\+\), \d+ deletions?\(\-\)/,
+        successful_commit,
         /Already up-to-date/
       ]
+    end
+
+    def successful_commit
+      /\d+ files? changed, \d+ insertions?\(\+\), \d+ deletions?\(\-\)/
     end
 
     def successful_push(branch, to_branch = nil)
@@ -236,9 +239,22 @@ module Aatc
       end
     end
 
+    def git(git_cmd, regex = nil)
+      output = `git #{git_cmd}`
+      return output if regex.nil?
+
+      case output
+      when *Array(regex)
+        output
+      else
+        raise GitError, "Unexpected output for `git #{git_cmd}`: #{output}"
+      end
+    end
+
     def assure_valid_release_and_apps(release = 'release', options = {})
       options[:all] ||= -> { apps_by_name.keys }
 
+      # Prompt for release and apps if they were not proveded via command line.
       if @release.nil?
         puts "Enter the name of the #{release}."
         @release = (gets || nil_thing!('release')).strip
@@ -256,8 +272,9 @@ module Aatc
       @apps.reject!(&:empty?)
       fail "I need a non-empty list!" if @apps.empty?
 
-      app_names = apps_by_name.keys
-      non_apps  = @apps.reject { |a| app_names.include?(a) }
+      # Make sure the app names we were given actually corrospond to apps.
+      valid_app_names = apps_by_name.keys
+      non_apps  = @apps.reject { |a| valid_app_names.include?(a) }
       unless non_apps.empty?
         app_apps = non_apps.size > 1 ? 'apps' : 'app'
         is_are   = non_apps.size > 1 ? 'are' : 'is'

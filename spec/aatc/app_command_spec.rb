@@ -16,13 +16,13 @@ describe Aatc::AppCommand, type: :command do
 
       context 'with -p' do
         it 'lists every app name and their full paths' do
-          expect(&run_apps('-p')).to output(/\~\/aatc_test\/what-up/).to_stdout
-          expect(&run_apps('-p')).to output(/\~\/aatc_test\/other-app/).to_stdout
-          expect(&run_apps('-p')).to output(/\~\/somewhere\/else/).to_stdout
+          expect(&run_apps('-p')).to output(/\/aatc_test\/what-up/).to_stdout
+          expect(&run_apps('-p')).to output(/\/aatc_test\/other-app/).to_stdout
+          expect(&run_apps('-p')).to output(/\/somewhere\/else/).to_stdout
         end
       end
 
-      context 'with --last-closed' do
+      context 'with --last-closed', pending: true do
         it 'prints the last closed release branch for each app' do
           expect(&run_apps('--last-closed'))
             .to output(/release\-2014\-06\-15/).to_stdout

@@ -62,7 +62,7 @@ RSpec.configure do |config|
       f.write(valid_apps_yml)
     end
 
-    allow(cmd).to receive(:`).and_return 'WARNING: UNSTUBBED ``'
+    allow(cmd).to receive(:`) { |c| "WARNING: UNSTUBBED `#{c}`" }
   end
 
 # The settings below are suggested to provide a good initial experience
