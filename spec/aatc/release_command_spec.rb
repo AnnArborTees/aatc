@@ -134,4 +134,17 @@ describe Aatc::ReleaseCommand, type: :command do
       end
     end
   end
+
+  describe 'run_hotfix' do
+    it 'checks out master, then creates a new branch with the given title' do
+      stub_chdir_with('/aatc_test/what-up')
+      expect_clean_git_status
+      expect_successful_git_checkout('master')
+      expect_successful_git_pull('master')
+      expect_successful_git_checkout_b('fix-things')
+
+      expect(&run_hotfix('first-app', 'fix-things'))
+       .to output(/Now working on hotfix fix-things/)
+    end
+  end
 end
