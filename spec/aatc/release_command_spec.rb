@@ -157,12 +157,39 @@ describe Aatc::ReleaseCommand, type: :command do
   end
 
   describe 'run_hotfix_close' do
-    context 'when not currently working on a hotfix' do
-      it 'issues an error'
+    context 'when app is not currently working on a hotfix' do
+      it 'issues an error' do
+        stub_chdir_with('aatc_test/what-up').twice
+
+        expect_git_branch('master', 'develop', 'whatever-else')
+
+        expect(&run_hotfix_close('first-app'))
+          .to output(/Your current branch is not working on a hotfix/).to_stderr
+      end
     end
 
     context 'when the given app is in the middle of a hotfix' do
-      it 'unmarks the hotfix, merges with master/develop, and reminds user to merge release'
+      it 'unmarks the hotfix, merges with master/develop, and reminds user to merge release' do
+        status = Common.app_status('/aatc_test/what-up', :force)
+        status.hotfix = 'my-hotfix'
+        status.save
+
+        stub_chdir_with('/aatc_test/what-up').twice
+
+        expect_git_branch('master', 'develop', 'hotfix-my-hotfix', on: 'hotfix-my-hotfix')
+        expect_clean_git_status
+        expect_successful_git_add_a
+        expect_successful_git_commit('HOTFIX CLOSED: my-hotfix')
+        expect_successful_git_checkout('master')
+        expect_successful_git_pull('master')
+        expect_successful_git_merge('hotfix-my-hotfix')
+        expect_successful_git_checkout('develop')
+        expect_successful_git_pull('develop')
+        expect_successful_git_merge('hotfix-my-hotfix')
+
+        expect(&run_hotfix_close('first-app'))
+          .to output(/Hotfix my-hotfix closed and merged with master\/develop\./).to_stdout
+      end
     end
   end
 end

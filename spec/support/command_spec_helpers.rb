@@ -55,6 +55,11 @@ module CommandSpecHelpers
       .with(%_git commit -m "#{message}"_)
       .and_return '1 file changed, 5 insertions(+), 2 deletions(-)'
   end
+  def expect_successful_git_merge(branch)
+    # TODO
+    expect(cmd).to receive(:`).with("git merge #{branch}")
+      .and_return '8 files changed, 20 insertions(+), 2 deletions(-)'
+  end
 
   def stub_input_with(input)
     allow(cmd).to receive(:gets, &input.method(:gets))
