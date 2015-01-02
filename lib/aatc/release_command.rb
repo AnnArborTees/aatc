@@ -219,15 +219,19 @@ module Aatc
     end
 
     def help_hotfix(_args)
-      puts "`aatc hotfix [app-name] [hotfix-name]`"
+      puts "`aatc hotfix hotfix-name [app-name]`"
       puts "Opens a hotfix on the given app with the given name."
-      puts "Should work when not given an app name. I'll make it do that."
+      puts
+      puts "If no app-name is given, will use the app in the current"
+      puts "working directory."
     end
     def run_hotfix(args)
       process_hotfix_args(args)
-      if (@app.nil? || @name.nil?) || (@app.empty? || @name.empty?)
-        fail "try `aatc hotfix <app-name> <hotfix-name>`"
-      end
+      @name = app_from_current_directory if @name.nil?
+      fail "try `aatc hotfix <hotfix-name> [app-name]`" if @name.nil?
+
+      @app = app_in_cwd! if @app.nil?
+
       branch = "hotfix-#{@name}"
 
       # Check errors...
@@ -272,10 +276,18 @@ module Aatc
     end
 
     def help_hotfix_close(_args)
-      puts "This also needs to be more convenient."
+      puts "`aatc hotfix-close [app-name]`"
+      puts "Closes the current hotfix on either the given app, or the"
+      puts "app in the current working directory."
+      puts
+      puts "Closing a hotfix includes merging/pushing with master and"
+      puts "develop, but NOT the current release. Hotfixes have a high"
+      puts "chance of merge conflicts with in-development release branches."
     end
     def run_hotfix_close(args)
       process_hotfix_close_args(args)
+
+      @app = app_in_cwd! if @app.nil?
 
       app      = apps_by_name[@app]
       app_path = app['path']
@@ -369,10 +381,10 @@ module Aatc
 
     def process_hotfix_args(args)
       args.each do |arg|
-        if @app.nil?
-          @app = arg
-        elsif @name.nil?
+        if @name.nil?
           @name = arg
+        elsif @app.nil?
+          @app = arg
         else
           fail "Too many arguments for hotfix! Please just specify "\
                "app name, and hotfix name."
@@ -381,12 +393,23 @@ module Aatc
     end
 
     def process_hotfix_close_args(args)
-      if args.empty?
-        fail "Please supply app name: `aatc hotfix-close your-app`."
-      elsif args.size > 1
-        fail "Only 1 argument (app name) is necessary."
+      if args.size > 1
+        fail "Only 1 argument (app name) can be accepted."
       end
       @app = args.first
+    end
+
+    def app_in_cwd!
+      all_apps.each do |app|
+        path      = app['path']
+        full_path = path.gsub('~', Dir.home)
+
+        case Dir.pwd
+        when path, full_path then return app['name']
+        end
+      end
+
+      fail "Please specify an app name, or cd into an app's project root."
     end
 
     def git(git_cmd, regex = nil)

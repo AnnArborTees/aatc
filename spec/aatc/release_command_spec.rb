@@ -151,8 +151,32 @@ describe Aatc::ReleaseCommand, type: :command do
       expect_successful_git_add_a
       expect_successful_git_commit('HOTFIX INITIATED: fix-things')
 
-      expect(&run_hotfix('first-app', 'fix-things'))
+      expect(&run_hotfix('fix-things', 'first-app'))
        .to output(/now working on hotfix fix-things/).to_stdout
+    end
+
+    it 'works when current directory is project root' do
+      stub_chdir_with('/aatc_test/what-up').twice
+      expect_clean_git_status
+      expect_successful_git_checkout('master')
+      expect_successful_git_pull('master')
+      expect_successful_git_checkout_b('hotfix-fix-things')
+      expect_successful_git_add_a
+      expect_successful_git_commit('HOTFIX INITIATED: fix-things')
+
+      expect(Dir).to receive(:pwd).and_return('/aatc_test/what-up').at_least(:once)
+
+      expect(&run_hotfix('fix-things'))
+       .to output(/now working on hotfix fix-things/).to_stdout
+    end
+
+    it 'fails when not given a valid app' do
+      expect do
+        expect(&run_hotfix('fix-things'))
+          .to output(/Please specify an app name, or cd into an app's project root/)
+          .to_stderr
+      end
+        .to raise_error
     end
   end
 
