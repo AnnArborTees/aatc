@@ -7,6 +7,19 @@ module Aatc
 
     include Common
 
+    def help_open(_args)
+      puts "`aatc open [release-name] [*apps]`"
+      puts "Opens a new release with the given release name, on the"
+      puts "given apps. All trailing arguments will be interpreted"
+      puts "as the name of an app on which to have the release opened."
+      puts
+      puts "Will ask you to input release name and apps if called without"
+      puts "arguments. If no apps are specified, will attempt to open the"
+      puts "release on the app in the current working directory."
+      puts
+      puts "If 'all' (without quotes) is supplied as the only app name,"
+      puts "all registered apps (see add-app) will have the release opened."
+    end
     # TODO factor this MONSTROSITY (MORE!)
     def run_open(args)
       process_open_args(args)
@@ -112,7 +125,16 @@ module Aatc
     end
 
 
-
+    def help_close(_args)
+      puts "`aatc close [release-name] [*apps]`"
+      puts "Closes the given release on the given apps, given"
+      puts "that the release is currently open on the apps."
+      puts
+      puts "'all' can be passed instead of app names similarly"
+      puts "to the open subcommand, except it will close all "
+      puts "apps for which the release is open (will not attempt"
+      puts "to close unopened apps)."
+    end
     def run_close(args)
       process_close_args(args)
 
@@ -196,6 +218,11 @@ module Aatc
       end
     end
 
+    def help_hotfix(_args)
+      puts "`aatc hotfix [app-name] [hotfix-name]`"
+      puts "Opens a hotfix on the given app with the given name."
+      puts "Should work when not given an app name. I'll make it do that."
+    end
     def run_hotfix(args)
       process_hotfix_args(args)
       if (@app.nil? || @name.nil?) || (@app.empty? || @name.empty?)
@@ -244,6 +271,9 @@ module Aatc
       end
     end
 
+    def help_hotfix_close(_args)
+      puts "This also needs to be more convenient."
+    end
     def run_hotfix_close(args)
       process_hotfix_close_args(args)
 

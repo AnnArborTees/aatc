@@ -82,13 +82,13 @@ module Aatc
     def help_dialog
       puts "--- Ann Arbor T-Shirt Company Command Line Utilities ---"
       puts
-      puts "This is a tool for managing releases, deployment, and hotfixes "\
-           "across our multitudinous apps. For the most part, all this "\
-           "utility does is create, merge, and push git branches, so if you "\
-           "know what to do, this is all stuff you can do manually."
+      puts "This is a tool for managing releases, deployment, and hotfixes"
+      puts "across our multitudinous apps. For the most part, all this"
+      puts "utility does is create, merge, and push git branches, so if you"
+      puts "know what to do, this is all stuff you can do manually."
       puts
       puts "Available subcommands are #{subcommand_list}."
-      puts "Execute `aatc help <subcommand>` to receive more info on any given "\
+      puts "Execute `aatc help <subcommand>` to receive more info on any given"
            "subcommand."
     end
   end
