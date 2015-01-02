@@ -11,7 +11,7 @@ module Aatc
       puts "`aatc open [release-name] [*apps]`"
       puts "Opens a new release with the given release name, on the"
       puts "given apps. All trailing arguments will be interpreted"
-      puts "as the name of an app on which to have the release opened."
+      puts "as the names of apps on which to have the release opened."
       puts
       puts "Will ask you to input release name and apps if called without"
       puts "arguments. If no apps are specified, will attempt to open the"
