@@ -159,12 +159,12 @@ describe Aatc::ReleaseCommand, type: :command do
   describe 'run_hotfix_close' do
     context 'when app is not currently working on a hotfix' do
       it 'issues an error' do
-        stub_chdir_with('aatc_test/what-up').twice
-
-        expect_git_branch('master', 'develop', 'whatever-else')
-
-        expect(&run_hotfix_close('first-app'))
-          .to output(/Your current branch is not working on a hotfix/).to_stderr
+        expect do
+          expect(&run_hotfix_close('first-app'))
+            .to output(/There appears to be no hotfix on the current branch for first-app/)
+            .to_stderr
+        end
+          .to raise_error
       end
     end
 
@@ -174,21 +174,28 @@ describe Aatc::ReleaseCommand, type: :command do
         status.hotfix = 'my-hotfix'
         status.save
 
-        stub_chdir_with('/aatc_test/what-up').twice
+        stub_chdir_with('/aatc_test/what-up')
 
-        expect_git_branch('master', 'develop', 'hotfix-my-hotfix', on: 'hotfix-my-hotfix')
+        # expect_git_branch('master', 'develop', 'hotfix-my-hotfix', on: 'hotfix-my-hotfix')
         expect_clean_git_status
         expect_successful_git_add_a
         expect_successful_git_commit('HOTFIX CLOSED: my-hotfix')
         expect_successful_git_checkout('master')
         expect_successful_git_pull('master')
         expect_successful_git_merge('hotfix-my-hotfix')
+        expect_successful_git_push('master')
+
         expect_successful_git_checkout('develop')
         expect_successful_git_pull('develop')
         expect_successful_git_merge('hotfix-my-hotfix')
+        expect_successful_git_push('develop')
 
         expect(&run_hotfix_close('first-app'))
-          .to output(/Hotfix my-hotfix closed and merged with master\/develop\./).to_stdout
+          .to output(/It is up to you to merge hotfix-my-hotfix with the current release/)
+          .to_stdout
+
+        status = Common.app_status('/aatc_test/what-up', :force)
+        expect(status.hotfix).to be_nil
       end
     end
   end

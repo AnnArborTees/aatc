@@ -234,7 +234,7 @@ module Aatc
           git 'add -A'
           git %_commit -m "HOTFIX INITIATED: #{@name}"_, successful_commit
 
-          puts "You are now working on hotfix #{@name}!"
+          puts "You are now working on hotfix #{@name} off of master branch!"
           puts "Remember to merge this with the appropriate release after "\
                "executing `aatc hotfix-close`."
 
@@ -244,7 +244,56 @@ module Aatc
       end
     end
 
+    def run_hotfix_close(args)
+      process_hotfix_close_args(args)
+
+      app      = apps_by_name[@app]
+      app_path = app['path']
+      status   = app_status(app_path)
+
+      if status.hotfix.nil?
+        fail "There appears to be no hotfix on the current branch for "\
+             "#{@app}. Please checkout the branch of the hotfix you'd "\
+             "like to close, and try again."
+      end
+
+      Dir.chdir(app_path) do
+        begin
+          case `git status`
+          when /Changes not staged for commit/
+            fail "Please commit or stash your unstaged changes before closing "\
+                 "the hotfix."
+          end
+
+          hotfix_name = status.hotfix
+          status.hotfix = nil
+          status.save
+
+          git 'add -A'
+          git %_commit -m "HOTFIX CLOSED: #{hotfix_name}"_, successful_commit
+
+          %w(master develop).each do |branch|
+            git "checkout #{branch}",         /Switched to branch '#{branch}'/
+            git "pull -u origin #{branch}",    successful_pull
+            git "merge hotfix-#{hotfix_name}", successful_merge
+            git "push -u origin #{branch}",    successful_push(branch)
+          end
+
+          puts "Hotfix #{hotfix_name} successfully closed and merged with master "\
+               "and develop, but NOT the current release."
+          puts "It is up to you to merge hotfix-#{hotfix_name} with the current release."
+
+        rescue GitError => e
+          fail e
+        end
+      end
+    end
+
     private
+
+    def successful_merge
+      successful_commit
+    end
 
     def successful_pull
       [
@@ -299,6 +348,15 @@ module Aatc
                "app name, and hotfix name."
         end
       end
+    end
+
+    def process_hotfix_close_args(args)
+      if args.empty?
+        fail "Please supply app name: `aatc hotfix-close your-app`."
+      elsif args.size > 1
+        fail "Only 1 argument (app name) is necessary."
+      end
+      @app = args.first
     end
 
     def git(git_cmd, regex = nil)
@@ -366,7 +424,8 @@ module Aatc
           when /nothing to commit, working directory clean/,
                /nothing added to commit but untracked files present/ 
 
-            if `git branch`.include?((branch || @release))
+            b = (branch || @release)
+            if b && `git branch`.include?(b)
               release_exists << app_name
             end
 
