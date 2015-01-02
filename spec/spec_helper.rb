@@ -63,6 +63,7 @@ RSpec.configure do |config|
     end
 
     allow(cmd).to receive(:`) { |c| "WARNING: UNSTUBBED `#{c}`" }
+    allow(cmd).to receive(:system) { |c| "WARNING: UNSTUBBED system(#{c.inspect})" }
   end
 
 # The settings below are suggested to provide a good initial experience

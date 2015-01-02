@@ -12,7 +12,9 @@ module Aatc
     apps: 'app', add_app: 'app', rm_app: 'app',
 
     open:   'release', close:        'release',
-    hotfix: 'release', hotfix_close: 'release'
+    hotfix: 'release', hotfix_close: 'release',
+
+    deploy: 'deploy'
   }
 
   class << self
