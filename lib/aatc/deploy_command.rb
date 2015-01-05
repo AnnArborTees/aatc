@@ -22,6 +22,8 @@ module Aatc
       if @apps.nil? || @apps.empty?
         $stdout.puts "Please enter a comma separated list of app names, or 'all' "\
                      "for all apps."
+        $stdout.puts
+        print_registered_apps
 
         @apps = ($stdin.gets || nil_thing!('app names')).split(',').map(&:strip)
       end

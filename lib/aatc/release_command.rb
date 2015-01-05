@@ -449,7 +449,7 @@ module Aatc
         puts "Enter a comma separated list of apps on which you'd like"
         puts "to open this release (or 'all' for every app)."
         puts
-        puts "Registered apps: #{apps_by_name.empty? ? '<none>' : apps_by_name.keys.join(', ')}"
+        print_registered_apps
 
         @apps = (STDIN.gets || nil_thing!('apps')).split(',').map(&:strip)
       end

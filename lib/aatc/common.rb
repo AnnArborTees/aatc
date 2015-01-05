@@ -102,6 +102,7 @@ module Aatc
       end
     end
 
+    # TODO not used?
     def ask(question)
       response = ''
       until response == 'y' || response == 'n'
@@ -112,6 +113,11 @@ module Aatc
         puts "#{@name} was not removed."
         return
       end
+    end
+
+    def print_registered_apps
+      $stdout.puts "Registered apps: "\
+        "#{apps_by_name.empty? ? '<none>' : apps_by_name.keys.join(', ')}"
     end
 
     def nil_thing!(thing)
