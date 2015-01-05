@@ -7,6 +7,9 @@ module Aatc
     def help_apps(_args)
       puts "Displays a list of all registered apps."
       puts
+      puts "Note that this may hang if your cap deploy asks the user for"
+      puts "input for anything OTHER than which branch to deploy off of."
+      puts
       puts "OPTIONS:"
       puts "-p   => Print project root directories of each app."
     end
