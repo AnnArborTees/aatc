@@ -333,6 +333,10 @@ module Aatc
 
     private
 
+    def `(cmd)
+      super(cmd + ' 2>&1')
+    end
+
     def successful_checkout(branch)
       [
         /Switched to( a new)? branch '#{branch}'/,

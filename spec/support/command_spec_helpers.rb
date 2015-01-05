@@ -62,7 +62,7 @@ module CommandSpecHelpers
   end
 
   def stub_input_with(input)
-    allow(cmd).to receive(:gets, &input.method(:gets))
+    allow(STDIN).to receive(:gets, &input.method(:gets))
   end
 
   def stub_chdir_with(*dirs)
