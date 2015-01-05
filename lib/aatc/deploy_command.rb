@@ -4,6 +4,7 @@ module Aatc
       include Common
 
       def help_deploy(_args)
+        puts "In progress do not touch"
       end
       def run_deploy(args)
         process_deploy_args(args)

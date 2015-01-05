@@ -89,9 +89,9 @@ module Aatc
 
         Dir.chdir(app_path) do
           begin
-            git 'checkout develop',        /Switched to( a new)? branch 'develop'/
+            git 'checkout develop',        successful_checkout('develop')
             git 'pull -u origin develop',  successful_pull
-            git "checkout -b #{@release}", /Switched to a new branch '#{@release}'/
+            git "checkout -b #{@release}", successful_checkout(@release)
 
             status = app_status(app_path)
             status.open_release = @release
@@ -188,7 +188,7 @@ module Aatc
 
         Dir.chdir(app_path) do
           begin
-            git "checkout #{@release}",       /Switched to branch '#{@release}'/
+            git "checkout #{@release}",       successful_checkout(@release)
             git "pull -u origin #{@release}", successful_pull
 
             status = app_status(app_path)
@@ -254,9 +254,9 @@ module Aatc
 
       Dir.chdir(app_path) do
         begin
-          git 'checkout master', /Switched to branch 'master'/
+          git 'checkout master', successful_checkout('master')
           git 'pull -u origin master', successful_pull
-          git "checkout -b #{branch}", /Switched to a new branch '#{branch}'/
+          git "checkout -b #{branch}", successful_checkout(branch)
 
           status = app_status(app_path)
           status.hotfix = @name
@@ -315,7 +315,7 @@ module Aatc
           git %_commit -m "HOTFIX CLOSED: #{hotfix_name}"_, successful_commit
 
           %w(master develop).each do |branch|
-            git "checkout #{branch}",         /Switched to branch '#{branch}'/
+            git "checkout #{branch}",          successful_checkout(branch)
             git "pull -u origin #{branch}",    successful_pull
             git "merge hotfix-#{hotfix_name}", successful_merge
             git "push -u origin #{branch}",    successful_push(branch)
@@ -332,6 +332,13 @@ module Aatc
     end
 
     private
+
+    def successful_checkout(branch)
+      [
+        /Switched to( a new)? branch '#{branch}'/,
+        /Already on '#{branch}'/
+      ]
+    end
 
     def successful_merge
       successful_commit
