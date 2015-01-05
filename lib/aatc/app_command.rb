@@ -37,8 +37,17 @@ module Aatc
         @path = (gets || nil_thing!('app project root')).strip
       end
 
+      @path.gsub! '~', Dir.home
+
       if config['apps'].find { |a| a['name'] == @name }
         fail "There is already a registered app called #{@name}."
+      end
+
+      unless File.exists?(@path)
+        fail "The path #{@path} does not exist."
+      end
+      unless File.directory?(@path)
+        fail "#{@path} is not a directory."
       end
 
       config['apps'] << {
