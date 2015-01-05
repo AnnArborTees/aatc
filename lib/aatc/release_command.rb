@@ -430,7 +430,7 @@ module Aatc
       # Prompt for release and apps if they were not proveded via command line.
       if @release.nil?
         puts "Enter the name of the #{release}."
-        @release = (gets || nil_thing!('release')).strip
+        @release = (STDIN.gets || nil_thing!('release')).strip
       end
       if @apps.nil? || @apps.empty?
         @apps ||= []
@@ -438,7 +438,7 @@ module Aatc
           Enter a comma separated list of apps on which you'd like
           to open this release (or 'all' for every app).
         ).squeeze(' ')
-        @apps = (gets || nil_thing!('apps')).split(',').map(&:strip)
+        @apps = (STDIN.gets || nil_thing!('apps')).split(',').map(&:strip)
       end
       @apps = options[:all].call if @apps.size == 1 && @apps[0].downcase == 'all'
 

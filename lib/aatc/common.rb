@@ -106,7 +106,7 @@ module Aatc
       response = ''
       until response == 'y' || response == 'n'
         puts "#{question} (y/[n])"
-        response = (gets || 'n').downcase.strip
+        response = (STDIN.gets || 'n').downcase.strip
       end
       if response == 'n'
         puts "#{@name} was not removed."
