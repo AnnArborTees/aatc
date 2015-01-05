@@ -110,7 +110,7 @@ module Aatc
           end
         end
 
-        failed.each do |_app_name, error|
+        failed.each do |error|
           STDERR.puts error
         end
         if succeeded.empty?
@@ -119,7 +119,7 @@ module Aatc
 
         puts "Successfully opened release #{@release}!"
         unless failed.empty?
-          puts "Except for on #{failed.keys.join(', ')}."
+          puts "Except for on #{failed.join(', ')}."
         end
       end
     end
@@ -445,10 +445,12 @@ module Aatc
       end
       if @apps.nil? || @apps.empty?
         @apps ||= []
-        puts %(
-          Enter a comma separated list of apps on which you'd like
-          to open this release (or 'all' for every app).
-        ).squeeze(' ')
+
+        puts "Enter a comma separated list of apps on which you'd like"
+        puts "to open this release (or 'all' for every app)."
+        puts
+        puts "Registered apps: #{apps_by_name.empty? ? '<none>' : apps_by_name.keys.join(', ')}"
+
         @apps = (STDIN.gets || nil_thing!('apps')).split(',').map(&:strip)
       end
       @apps = options[:all].call if @apps.size == 1 && @apps[0].downcase == 'all'
@@ -462,6 +464,7 @@ module Aatc
       unless non_apps.empty?
         app_apps = non_apps.size > 1 ? 'apps' : 'app'
         is_are   = non_apps.size > 1 ? 'are' : 'is'
+
         fail %(
           The #{app_apps} #{non_apps.join(', ')} #{is_are} not
           registered. View all registered apps with `aatc apps`,
