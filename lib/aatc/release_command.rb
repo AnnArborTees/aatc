@@ -53,7 +53,7 @@ module Aatc
         repositories = release_exists.size > 1 ? 'repositories' : 'repository'
         have = release_exists.size > 1 ? 'have' : 'has'
         STDERR.puts %(
-          The #{repositorie} for #{release_exists.join(', ')}
+          The #{repositories} for #{release_exists.join(', ')}
           already #{have} a branch called #{@release}.
         ).squeeze(' ')
         cannot_go_on = true
