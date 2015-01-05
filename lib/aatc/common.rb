@@ -1,4 +1,5 @@
 require 'yaml'
+require 'fileutils'
 
 module Aatc
   AppStatus = Struct.new(:path, :open_release, :hotfix) do
@@ -42,7 +43,12 @@ module Aatc
 
     def config(force = false)
       if force || @config.nil?
-        @config = YAML.load_file(config_file)
+        if File.exists?(config_file)
+          @config = YAML.load_file(config_file)
+        else
+          FileUtils.mkdir_p CONFIG_PATH
+          @config = { 'apps' => [] }
+        end
       else
         @config
       end
