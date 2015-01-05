@@ -5,6 +5,10 @@ module CommandSpecHelpers
     @cmd ||= described_class.new
   end
 
+  def refresh_cmd!
+    @cmd = described_class.new
+  end
+
   def respond_to?(name, *args)
     return super || /^run_/ =~ name
   end
@@ -54,6 +58,16 @@ module CommandSpecHelpers
     expect(cmd).to receive(:`)
       .with(%_git commit -m "#{message}"_)
       .and_return '1 file changed, 5 insertions(+), 2 deletions(-)'
+  end
+  def expect_successful_git_commit_without_deletions(message)
+    expect(cmd).to receive(:`)
+      .with(%_git commit -m "#{message}"_)
+      .and_return '1 file changed, 5 insertions(+)'
+  end
+  def expect_successful_git_commit_without_insertions(message)
+    expect(cmd).to receive(:`)
+      .with(%_git commit -m "#{message}"_)
+      .and_return '1 file changed, 8 deletions(-)'
   end
   def expect_successful_git_merge(branch)
     # TODO

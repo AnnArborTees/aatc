@@ -77,6 +77,27 @@ describe Aatc::ReleaseCommand, type: :command do
         expect(Common.app_status('/aatc_test/other-app', :force).open_release)
           .to eq 'release-2015-01-01'
       end
+
+      it 'works when there are only deletions or insertions', limit: true do
+        stub_chdir_with('/aatc_test/other-app').at_least(:once)
+
+        %w(without_insertions without_deletions).each do |suffix|
+          expect_clean_git_status
+          expect_git_branch('master', 'develop', 'ok')
+          expect_successful_git_checkout('develop')
+          expect_successful_git_pull('develop')
+          expect_successful_git_checkout_b('release-2015-01-01')
+          expect_successful_git_add_a
+          method("expect_successful_git_commit_#{suffix}").call('RELEASE OPENED: release-2015-01-01')
+          expect_successful_git_push('release-2015-01-01')
+
+          expect(&run_open('release-2015-01-01', 'other-app'))
+            .to output(/Successfully opened release-2015-01-01 for other-app/).to_stdout
+
+          File.unlink Common.status_file '/aatc_test/other-app'
+          refresh_cmd!
+        end
+      end
     end
   end
 

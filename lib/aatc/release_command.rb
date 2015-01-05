@@ -356,7 +356,7 @@ module Aatc
     end
 
     def successful_commit
-      /\d+ files? changed, \d+ insertions?\(\+\), \d+ deletions?\(\-\)/
+      /\d+ files? changed,( \d+ insertions?\(\+\),?)? (\d+ deletions?\(\-\))?/
     end
 
     def successful_push(branch, to_branch = nil)
