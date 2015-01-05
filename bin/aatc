@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
-$stdout.puts 'MANUALLY RUNNING RAKE INSTALL. THIS IS ONLY FOR DEV.'
-`rake install`
+# $stdout.puts 'MANUALLY RUNNING RAKE INSTALL. THIS IS ONLY FOR DEV.'
+# `rake install`
 require 'aatc'
 
 begin
