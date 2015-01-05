@@ -30,11 +30,11 @@ module Aatc
 
       if @name.nil?
         puts "Enter the name of the new app."
-        @name = (gets || nil_thing!('app name')).strip
+        @name = (STDIN.gets || nil_thing!('app name')).strip
       end
       if @path.nil?
         puts "Enter the path to the app's project directory."
-        @path = (gets || nil_thing!('app project root')).strip
+        @path = (STDIN.gets || nil_thing!('app project root')).strip
       end
 
       @path.gsub! '~', Dir.home
@@ -73,7 +73,7 @@ module Aatc
 
       if @name.nil?
         puts "Enter the name of the app you'd like removed."
-        @name = (gets || nil_thing!('app name')).strip
+        @name = (STDIN.gets || nil_thing!('app name')).strip
       end
 
       name_matches = proc { |a| a['name'] == @name }
@@ -89,7 +89,7 @@ module Aatc
           puts "Are you sure you'd like to delete #{@name}? "\
                "The project file will remain; only the entry "\
                "in #{config_file} will be removed. (y/n)"
-          response = (gets || 'n').downcase.strip
+          response = (STDIN.gets || 'n').downcase.strip
         end
         if response == 'n'
           puts "#{@name} was not removed."
