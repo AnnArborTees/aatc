@@ -39,19 +39,23 @@ describe Aatc::AppCommand, type: :command do
   end
 
   describe '#run_add_app' do
+    before(:each) do
+      FileUtils.mkdir_p '/some/path'
+    end
+
     context 'with no args' do
       context 'and valid stream input' do
         it 'writes an app entry to apps.yml' do
           before_names = config['apps'].map { |a| a['name'] }
           before_paths = config['apps'].map { |a| a['path'] }
           expect(before_names).to_not include 'new-app'
-          expect(before_paths).to_not include '~/some/path'
+          expect(before_paths).to_not include '/some/path'
 
           input = StringIO.new
           # Enter app name.
           input.puts 'new-app'
           # Enter app path.
-          input.puts '~/some/path'
+          input.puts '/some/path'
           input.rewind
 
           stub_input_with(input)
@@ -61,7 +65,7 @@ describe Aatc::AppCommand, type: :command do
           after_names = config(true)['apps'].map { |a| a['name'] }
           after_paths = config(true)['apps'].map { |a| a['path'] }
           expect(after_names).to include 'new-app'
-          expect(after_paths).to include '~/some/path'
+          expect(after_paths).to include '/some/path'
         end
       end
 
@@ -70,14 +74,14 @@ describe Aatc::AppCommand, type: :command do
           before_names = config['apps'].map { |a| a['name'] }
           before_paths = config['apps'].map { |a| a['path'] }
           expect(before_names).to_not include 'new-app'
-          expect(before_paths).to_not include '~/some/path'
+          expect(before_paths).to_not include '/some/path'
 
-          expect(&run_add_app('new-app', '~/some/path')).to output(/Successfully/).to_stdout
+          expect(&run_add_app('new-app', '/some/path')).to output(/Successfully/).to_stdout
 
           after_names = config(true)['apps'].map { |a| a['name'] }
           after_paths = config(true)['apps'].map { |a| a['path'] }
           expect(after_names).to include 'new-app'
-          expect(after_paths).to include '~/some/path'
+          expect(after_paths).to include '/some/path'
         end
       end
     end

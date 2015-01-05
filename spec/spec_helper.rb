@@ -17,6 +17,7 @@
 require 'fakefs/safe'
 require 'fakefs/spec_helpers'
 require_relative 'support/command_spec_helpers'
+require 'aatc/common'
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
@@ -52,6 +53,12 @@ RSpec.configure do |config|
 
   config.before(:all) do
     Aatc.const_set 'CONFIG_PATH', 'aatc'
+
+    Aatc::Common.module_eval do
+      def puts(*stuff)
+        Kernel.puts(*stuff)
+      end
+    end
   end
 
   config.before(:each, type: :command) do
@@ -63,7 +70,7 @@ RSpec.configure do |config|
     end
 
     allow(cmd).to receive(:`) { |c| "WARNING: UNSTUBBED `#{c}`" }
-    allow(cmd).to receive(:system) { |c| "WARNING: UNSTUBBED system(#{c.inspect})" }
+    allow(cmd).to receive(:system) { |c| raise "WARNING: UNSTUBBED system(#{c.inspect})" }
   end
 
 # The settings below are suggested to provide a good initial experience

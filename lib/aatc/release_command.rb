@@ -41,7 +41,7 @@ module Aatc
       unless unstaged_changes.empty?
         repositories = unstaged_changes.size > 1 ? 'repositories' : 'repository'
         have = unstaged_changes.size > 1 ? 'have' : 'has'
-        STDERR.puts %(
+        $stderr.puts %(
           The #{repositories} for #{unstaged_changes.join(', ')} #{have}
           unstaged changes and cannot have a new release opened.
         ).squeeze(' ')
@@ -52,7 +52,7 @@ module Aatc
       unless release_exists.empty?
         repositories = release_exists.size > 1 ? 'repositories' : 'repository'
         have = release_exists.size > 1 ? 'have' : 'has'
-        STDERR.puts %(
+        $stderr.puts %(
           The #{repositorie} for #{release_exists.join(', ')}
           already #{have} a branch called #{@release}.
         ).squeeze(' ')
@@ -62,10 +62,10 @@ module Aatc
       # Cannot open an app that's already open!
       unless already_open.empty?
         if unstaged_changes.size + release_exists.size > 0
-          STDERR.print 'Additionally, '
+          $stderr.print 'Additionally, '
         else
           app_apps = already_open.size > 1 ? 'apps' : 'app'
-          STDERR.print "The #{app_apps} "
+          $stderr.print "The #{app_apps} "
         end
         if already_open.size > 1
           problem = "already have open releases"
@@ -73,7 +73,7 @@ module Aatc
           release = apps_by_name[already_open[0]]['open_release']
           problem = "already has an open release (#{release})"
         end
-        STDERR.puts "#{already_open.join(', ')} #{problem}."
+        $stderr.puts "#{already_open.join(', ')} #{problem}."
         cannot_go_on = true
       end
 
@@ -105,13 +105,13 @@ module Aatc
             puts "Successfully opened #{@release} for #{app_name}."
 
           rescue GitError => e
-            STDERR.puts "#{app_name}: #{e.message}"
+            $stderr.puts "#{app_name}: #{e.message}"
             failed << app
           end
         end
 
         failed.each do |error|
-          STDERR.puts error
+          $stderr.puts error
         end
         if succeeded.empty?
           fail "No apps were successfully released."
@@ -203,7 +203,7 @@ module Aatc
             puts "Successfully closed #{@release} for #{app_name}!"
 
           rescue GitError => e
-            STDERR.puts "#{app_name}: #{e.message}"
+            $stderr.puts "#{app_name}: #{e.message}"
             failed << app
           end
         end
