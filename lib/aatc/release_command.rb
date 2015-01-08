@@ -331,6 +331,61 @@ module Aatc
       end
     end
 
+    def help_release(_args)
+      puts "`aatc release [*apps]`"
+      puts "Simply merges develop into master, and then pushes master."
+      puts "Also asks if you are sure before doing so."
+    end
+    def run_release(args)
+      process_release_args(args)
+      assure_valid_apps
+
+      app_configs, unstaged_changes, _release_exists = check_git_status(@apps)
+
+      unless unstaged_changes.empty?
+        fail "There are unstaged changes in #{unstaged_changes.join(', ')}. "\
+             "Please clean them up before releasing."
+      end
+
+      failed = []
+      succeeded = []
+
+      app_configs.each do |app|
+        app_name = app['name']
+        app_path = app['path']
+
+        Dir.chdir(app_path) do
+          begin
+            git 'checkout develop',       successful_checkout('develop')
+            git 'pull -u origin develop', successful_pull
+            git 'checkout master',        successful_checkout('master')
+            git 'pull -u origin master',  successful_pull
+
+            git 'merge develop',         successful_merge
+            git 'push -u origin master', successful_push('master')
+
+            succeeded << app_name
+            puts "Successfully released #{app_name}!"
+
+          rescue GitError => e
+            $stderr.puts "#{app_name}: #{e.message}"
+            failed << app_name
+          end
+        end
+      end
+
+      if succeeded.empty?
+        $stderr.puts "Failed to release any apps."
+      elsif failed.empty?
+        puts "Successfully released all given apps! You may now deploy them with "\
+             "`aatc deploy production <app name>`"
+      else
+        puts "Some apps failed to release: #{failed.join(', ')}."
+        puts "The rest succeeded, however, and can now be deployed: "
+        puts "#{succeded.join(', ')}"
+      end
+    end
+
     private
 
     def `(cmd)
@@ -410,6 +465,13 @@ module Aatc
       @app = args.first
     end
 
+    def process_release_args(args)
+      args.each do |arg|
+        @apps ||= []
+        @apps << arg.strip unless arg.strip.empty?
+      end
+    end
+
     def app_in_cwd!
       all_apps.each do |app|
         path      = app['path']
@@ -435,19 +497,26 @@ module Aatc
       end
     end
 
-    def assure_valid_release_and_apps(release = 'release', options = {})
-      options[:all] ||= -> { apps_by_name.keys }
-
-      # Prompt for release and apps if they were not proveded via command line.
+    def assure_valid_release(release = 'release')
       if @release.nil?
         puts "Enter the name of the #{release}."
         @release = (STDIN.gets || nil_thing!('release')).strip
       end
+    end
+
+    def assure_valid_release_and_apps(release = 'release', options = {})
+      assure_valid_release(release)
+      assure_valid_apps(options)
+    end
+
+    def assure_valid_apps(options = {})
+      options[:all] ||= -> { apps_by_name.keys }
+
+      # Prompt for release and apps if they were not proveded via command line.
       if @apps.nil? || @apps.empty?
         @apps ||= []
 
-        puts "Enter a comma separated list of apps on which you'd like"
-        puts "to open this release (or 'all' for every app)."
+        puts "Enter a comma separated list of apps, or 'all' for every relevant app:"
         puts
         print_registered_apps
 

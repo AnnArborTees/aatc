@@ -13,6 +13,7 @@ module Aatc
 
     open:   'release', close:        'release',
     hotfix: 'release', hotfix_close: 'release',
+    release: 'release',
 
     deploy: 'deploy'
   }

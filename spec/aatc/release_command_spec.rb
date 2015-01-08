@@ -244,4 +244,28 @@ describe Aatc::ReleaseCommand, type: :command do
       end
     end
   end
+
+  describe 'run_release' do
+    context 'when there are no conflicts' do
+      it 'merges develop into master and then pushes' do
+        input = StringIO.new
+        input.puts 'yes'
+        input.rewind
+
+        stub_input_with(input)
+        stub_chdir_with('/aatc_test/what-up').twice
+
+        expect_clean_git_status
+        expect_successful_git_checkout('develop')
+        expect_successful_git_pull('develop')
+        expect_successful_git_checkout('master')
+        expect_successful_git_pull('master')
+
+        expect_successful_git_merge('develop')
+        expect_successful_git_push('master')
+
+        expect(&run_release('first-app')).to output(/Successfully released all given apps/).to_stdout
+      end
+    end
+  end
 end
