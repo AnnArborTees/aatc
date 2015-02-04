@@ -17,6 +17,7 @@ module Aatc
     def run_apps(args)
       process_apps_args(args)
 
+      puts "==============================================="
       config['apps'].each do |app|
         puts app['name']
         puts app['path'] if @print_paths
