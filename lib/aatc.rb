@@ -10,6 +10,7 @@ module Aatc
     test: 'test',
 
     apps: 'app', add_app: 'app', rm_app: 'app',
+    app_alias: 'app',
 
     open:   'release', close:        'release',
     hotfix: 'release', hotfix_close: 'release',

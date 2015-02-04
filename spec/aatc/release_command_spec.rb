@@ -42,6 +42,39 @@ describe Aatc::ReleaseCommand, type: :command do
       end
     end
 
+    context 'when the app has "develop" aliased as "letest"', alias: true do
+      it 'uses "letest" instead of "develop"' do
+        app_status = Common.app_status('/aatc_test/other-app', :force)
+        expect(app_status.open_release).to be_nil
+
+        c = config(:force)
+        c['apps'].find { |a| a['name'] == 'other-app' }['aliases'] = { 'develop' => 'letest' }
+
+        input = StringIO.new
+        input.puts 'release-2015-01-01'
+        input.puts 'other-app'
+        input.rewind
+
+        stub_chdir_with('/aatc_test/other-app').twice
+        stub_input_with(input)
+
+        expect_clean_git_status
+        expect_git_branch('master', 'letest', 'local')
+        expect_successful_git_checkout('letest')
+        expect_successful_git_pull('letest')
+        expect_successful_git_checkout_b('release-2015-01-01')
+        expect_successful_git_add_a
+        expect_successful_git_commit('RELEASE OPENED: release-2015-01-01')
+        expect_successful_git_push('release-2015-01-01')
+
+        expect(&run_open)
+          .to output(/Successfully opened release-2015-01-01 for other-app/).to_stdout
+
+        expect(Common.app_status('/aatc_test/other-app', :force).open_release)
+          .to eq 'release-2015-01-01'
+      end
+    end
+
     context 'when the app already has an open release' do
       before(:each) do
         status = Common.app_status('/aatc_test/what-up/', :force)

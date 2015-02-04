@@ -9,7 +9,7 @@ module Aatc
       puts "OPTIONS:"
       puts "--branch=<branchname>  => "\
            "Specify which branch to deploy from. Defaults to develop "\
-           "for staging and master for production."
+           "for staging and master for production (or respective aliases)."
     end
     def run_deploy(args)
       process_deploy_args(args)
@@ -34,13 +34,15 @@ module Aatc
       succeeded = []
       failed    = []
       @apps.each do |app_name|
-        app = apps_by_name[app_name]
-        app_path = app['path']
+        app         = apps_by_name[app_name]
+        app_path    = app['path']
+        app_aliases = app['aliases'] || {}
+        branch      = app_aliases[@branch] || @branch
 
-        $stdout.puts "Deploying #{app_name}..."
+        $stdout.puts "Deploying #{app_name}...  (environment: #{@environment}, branch: #{branch})"
 
         Dir.chdir(app_path) do
-          if bundle_exec "cap #{@environment} deploy -s branch=#{@branch}", app_path
+          if bundle_exec "cap #{@environment} deploy -s branch=#{branch}", app_path
             succeeded
           else
             failed

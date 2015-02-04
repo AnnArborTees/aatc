@@ -12,6 +12,7 @@ module Aatc
       puts
       puts "OPTIONS:"
       puts "-p   => Print project root directories of each app."
+      puts "-a   => Print registered branch aliases of each app."
     end
     def run_apps(args)
       process_apps_args(args)
@@ -19,6 +20,12 @@ module Aatc
       config['apps'].each do |app|
         puts app['name']
         puts app['path'] if @print_paths
+        if @print_aliases
+          (app['aliases'] || {}).each do |key, value|
+            puts "#{key} => #{value}"
+          end
+        end
+        puts "==============================================="
       end
     end
 
@@ -116,12 +123,39 @@ module Aatc
       end
     end
 
+    def help_app_alias
+      puts "`aatc app-alias <appname> <original> <new>`"
+      puts "Adds the given 'alias'."
+      puts
+      puts "If you alias 'master' to be 'toast', release and deploy"
+      puts "commands will use the 'toast' branch instead of 'master'."
+      puts
+      puts "Currently, aliasing 'master' and 'develop' are the only"
+      puts "valid aliases."
+    end
+    def run_app_alias(args)
+      parse_app_alias_args(args)
+
+      app = config['apps'].find { |a| a['name'] == @app_name }
+      if app.nil?
+        fail "Couldn't find app with name #{@app_name}"
+      end
+
+      app['aliases'] ||= {}
+      app['aliases'][@original] = @new
+
+      save_config!
+
+      puts "Successfully added alias #{@original} => #{@new}!"
+    end
+
     private
 
     def process_apps_args(args)
       args.each do |arg|
         case arg
-        when '-p'                  then @print_paths = true
+        when '-p' then @print_paths = true
+        when '-a' then @print_aliases = true
 
         else
           fail "Unknown argument #{arg}"
@@ -158,6 +192,19 @@ module Aatc
             fail "Unknown argument #{arg}"
           end
         end
+      end
+    end
+
+    def parse_app_alias_args(args)
+      unless args.size == 3
+        fail "Try `aatc app-alias <app-name> <original> <new>`"
+      end
+      @app_name = args[0]
+      @original = args[1]
+      @new = args[2]
+
+      unless @original == 'master' || @original == 'develop'
+        fail "Only 'master' or 'develop' may be aliased at this time."
       end
     end
   end

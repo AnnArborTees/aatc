@@ -86,14 +86,17 @@ module Aatc
       app_configs.each do |app|
         app_name = app['name']
         app_path = app['path']
+        app_aliases = app['aliases'] || {}
 
         Dir.chdir(app_path) do
           begin
-            git 'checkout develop',        successful_checkout('develop')
-            git 'pull -u origin develop',  successful_pull
+            develop = app_aliases['develop'] || 'develop'
+
+            git "checkout #{develop}",        successful_checkout(develop)
+            git "pull -u origin #{develop}",  successful_pull
             git "checkout -b #{@release}", successful_checkout(@release)
 
-            status = app_status(app_path)
+            status  = app_status(app_path)
             status.open_release = @release
             status.save
 
@@ -227,7 +230,6 @@ module Aatc
     end
     def run_hotfix(args)
       process_hotfix_args(args)
-      @name = app_from_current_directory if @name.nil?
       fail "try `aatc hotfix <hotfix-name> [app-name]`" if @name.nil?
 
       @app = app_in_cwd! if @app.nil?
@@ -251,11 +253,14 @@ module Aatc
       # Pull from master and checkout hotfix branch.
       app = app_configs.first
       app_path = app['path']
+      app_aliases = app['aliases'] || {}
 
       Dir.chdir(app_path) do
         begin
-          git 'checkout master', successful_checkout('master')
-          git 'pull -u origin master', successful_pull
+          master = app_aliases['master'] || 'master'
+
+          git "checkout #{master}", successful_checkout(master)
+          git "pull -u origin #{master}", successful_pull
           git "checkout -b #{branch}", successful_checkout(branch)
 
           status = app_status(app_path)
@@ -265,7 +270,7 @@ module Aatc
           git 'add -A'
           git %_commit -m "HOTFIX INITIATED: #{@name}"_, successful_commit
 
-          puts "You are now working on hotfix #{@name} off of master branch!"
+          puts "You are now working on hotfix #{@name} off of #{master} branch!"
           puts "Remember to merge this with the appropriate release after "\
                "executing `aatc hotfix-close`."
 
@@ -293,6 +298,10 @@ module Aatc
       app_path = app['path']
       status   = app_status(app_path)
 
+      app_aliases = app['aliases'] || {}
+      develop  = app_aliases['develop'] || 'develop'
+      master   = app_aliases['master'] || 'master'
+
       if status.hotfix.nil?
         fail "There appears to be no hotfix on the current branch for "\
              "#{@app}. Please checkout the branch of the hotfix you'd "\
@@ -314,15 +323,15 @@ module Aatc
           git 'add -A'
           git %_commit -m "HOTFIX CLOSED: #{hotfix_name}"_, successful_commit
 
-          %w(master develop).each do |branch|
+          [master, develop].each do |branch|
             git "checkout #{branch}",          successful_checkout(branch)
             git "pull -u origin #{branch}",    successful_pull
             git "merge hotfix-#{hotfix_name}", successful_merge
             git "push -u origin #{branch}",    successful_push(branch)
           end
 
-          puts "Hotfix #{hotfix_name} successfully closed and merged with master "\
-               "and develop, but NOT the current release."
+          puts "Hotfix #{hotfix_name} successfully closed and merged with #{master} "\
+               "and #{develop}, but NOT the current release."
           puts "It is up to you to merge hotfix-#{hotfix_name} with the current release."
 
         rescue GitError => e
@@ -354,15 +363,19 @@ module Aatc
         app_name = app['name']
         app_path = app['path']
 
+        app_aliases = app['aliases'] || {}
+        develop  = app_aliases['develop'] || 'develop'
+        master   = app_aliases['master'] || 'master'
+
         Dir.chdir(app_path) do
           begin
-            git 'checkout develop',       successful_checkout('develop')
-            git 'pull -u origin develop', successful_pull
-            git 'checkout master',        successful_checkout('master')
-            git 'pull -u origin master',  successful_pull
+            git "checkout #{develop}",       successful_checkout(develop)
+            git "pull -u origin #{develop}", successful_pull
+            git "checkout #{master}",        successful_checkout(master)
+            git "pull -u origin #{master}",  successful_pull
 
-            git 'merge develop',         successful_merge
-            git 'push -u origin master', successful_push('master')
+            git "merge #{develop}",         successful_merge
+            git "push -u origin #{master}", successful_push(master)
 
             succeeded << app_name
             puts "Successfully released #{app_name}!"
@@ -470,19 +483,6 @@ module Aatc
         @apps ||= []
         @apps << arg.strip unless arg.strip.empty?
       end
-    end
-
-    def app_in_cwd!
-      all_apps.each do |app|
-        path      = app['path']
-        full_path = path.gsub('~', Dir.home)
-
-        case Dir.pwd
-        when path, full_path then return app['name']
-        end
-      end
-
-      fail "Please specify an app name, or cd into an app's project root."
     end
 
     def git(git_cmd, regex = nil)

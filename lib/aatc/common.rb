@@ -18,7 +18,7 @@ module Aatc
     def to_yaml
       {
         'open_release' => open_release,
-        'hotfix'       => hotfix
+        'hotfix'       => hotfix,
       }
         .to_yaml
     end
@@ -40,7 +40,7 @@ module Aatc
         if File.exists?(config_file)
           @config = YAML.load_file(config_file)
         else
-          FileUtils.mkdir_p CONFIG_PATH
+          FileUtils.mkdir_p CONFIG_PATH.gsub('~', Dir.home)
           @config = { 'apps' => [] }
         end
       else
@@ -59,6 +59,19 @@ module Aatc
 
     def all_apps
       apps_by_name.values
+    end
+
+    def app_in_cwd!(return_config = false)
+      all_apps.each do |app|
+        path      = app['path']
+        full_path = path.gsub('~', Dir.home)
+
+        case Dir.pwd
+        when path, full_path then return return_config ? app : app['name']
+        end
+      end
+
+      fail "Please specify an app name, or cd into an app's project root."
     end
 
     def save_config!

@@ -22,6 +22,14 @@ describe Aatc::AppCommand, type: :command do
         end
       end
 
+      context 'with -a' do
+        it 'lists every app name and their aliases' do
+          config['apps'].first['aliases'] = { 'one' => 'two' }
+
+          expect(&run_apps('-a')).to output(/one => two/).to_stdout
+        end
+      end
+
       context 'with --last-closed', pending: true do
         it 'prints the last closed release branch for each app' do
           expect(&run_apps('--last-closed'))
@@ -172,6 +180,15 @@ describe Aatc::AppCommand, type: :command do
           expect(&run_rm_app('first-app')).to output(/was not removed/).to_stdout
         end
       end
+    end
+  end
+
+  describe '#run_app_alias', alias: true do
+    it 'adds the given alias' do
+      expect(&run_app_alias('first-app', 'master', 'noodles'))
+        .to output(/added/).to_stdout
+
+      expect(config(:force)['apps'].first['aliases']).to eq('master' => 'noodles')
     end
   end
 end
