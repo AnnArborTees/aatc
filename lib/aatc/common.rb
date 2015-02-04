@@ -27,12 +27,6 @@ module Aatc
   module Common
     extend self
 
-    def require_rugged!
-      return if defined?(Rugged)
-      return unless require 'rugged'
-      fail 'Could not require rugged. Run `gem install rugged`.'
-    end
-
     def camelize(term)
       string = term.to_s
       string = string.sub(/^[a-z\d]*/) { $&.capitalize }
@@ -74,7 +68,7 @@ module Aatc
     end
 
     def config_file
-      CONFIG_PATH + '/apps.yml'
+      CONFIG_PATH.gsub('~', Dir.home) + '/apps.yml'
     end
 
     def status_file(project_root)
