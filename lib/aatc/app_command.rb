@@ -124,7 +124,7 @@ module Aatc
     end
 
     def help_app_alias
-      puts "`aatc app-alias <appname> <original> <new>`"
+      puts "`aatc app-alias <original> <new> <*app names>`"
       puts "Adds the given 'alias'."
       puts
       puts "If you alias 'master' to be 'toast', release and deploy"
@@ -136,17 +136,29 @@ module Aatc
     def run_app_alias(args)
       parse_app_alias_args(args)
 
-      app = config['apps'].find { |a| a['name'] == @app_name }
-      if app.nil?
-        fail "Couldn't find app with name #{@app_name}"
-      end
+      could_not_find = []
 
-      app['aliases'] ||= {}
-      app['aliases'][@original] = @new
+      @app_names.each do |app_name|
+        app = config['apps'].find { |a| a['name'] == app_name }
+        if app.nil?
+          could_not_find << app_name
+          next
+        end
+
+        app['aliases'] ||= {}
+        app['aliases'][@original] = @new
+      end
 
       save_config!
 
-      puts "Successfully added alias #{@original} => #{@new}!"
+      if could_not_find.empty?
+        puts "Successfully added alias #{@original} => #{@new}!"
+      elsif could_not_find.size == @app_names.size
+        $stderr.puts "Couldn't find any apps with those names!"
+      else
+        puts "Successfully added alias #{@original} => #{@new}!"
+        $stderr.puts "Except for nonexistent apps: #{could_not_find.join(', ')}"
+      end
     end
 
     private
@@ -196,12 +208,12 @@ module Aatc
     end
 
     def parse_app_alias_args(args)
-      unless args.size == 3
-        fail "Try `aatc app-alias <app-name> <original> <new>`"
+      unless args.size >= 3
+        fail "Try `aatc app-alias <original> <new> <*app names>`"
       end
-      @app_name = args[0]
-      @original = args[1]
-      @new = args[2]
+      @original = args[0]
+      @new = args[1]
+      @app_names = args[2..-1]
 
       unless @original == 'master' || @original == 'develop'
         fail "Only 'master' or 'develop' may be aliased at this time."

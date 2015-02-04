@@ -185,7 +185,7 @@ describe Aatc::AppCommand, type: :command do
 
   describe '#run_app_alias', alias: true do
     it 'adds the given alias' do
-      expect(&run_app_alias('first-app', 'master', 'noodles'))
+      expect(&run_app_alias('master', 'noodles', 'first-app'))
         .to output(/added/).to_stdout
 
       expect(config(:force)['apps'].first['aliases']).to eq('master' => 'noodles')
