@@ -42,7 +42,7 @@ module Aatc
         $stdout.puts "Deploying #{app_name}...  (environment: #{@environment}, branch: #{branch})"
 
         Dir.chdir(app_path) do
-          if bundle_exec "cap #{@environment} deploy -s branch=#{branch}", app_path
+          if bundle_exec "cap #{@environment} deploy -q branch=#{branch}", app_path
             succeeded
           else
             failed
