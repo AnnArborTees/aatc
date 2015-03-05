@@ -19,7 +19,7 @@ describe Aatc::DeployCommand, type: :command do
             stub_chdir_with(path)
 
             expect(cmd).to receive(:system)
-              .with('bundle exec cap staging deploy -s branch=develop > log/failed-deploy.log')
+              .with('bundle exec cap staging deploy -q branch=develop > log/failed-deploy.log')
               .and_return true
           end
 
@@ -31,7 +31,7 @@ describe Aatc::DeployCommand, type: :command do
             stub_chdir_with(path)
 
             expect(cmd).to receive(:system)
-              .with('bundle exec cap staging deploy -s branch=develop > log/failed-deploy.log') { |_|
+              .with('bundle exec cap staging deploy -q branch=develop > log/failed-deploy.log') { |_|
                 File.open(path + '/log/failed-deploy.log', 'w') do |f|
                   f.write "This should not make it through to the end of the command."
                 end
@@ -53,7 +53,7 @@ describe Aatc::DeployCommand, type: :command do
               stub_chdir_with(path)
 
               expect(cmd).to receive(:system)
-                .with('bundle exec cap staging deploy -s branch=hello > log/failed-deploy.log')
+                .with('bundle exec cap staging deploy -q branch=hello > log/failed-deploy.log')
                 .and_return true
             end
 
@@ -68,7 +68,7 @@ describe Aatc::DeployCommand, type: :command do
             stub_chdir_with(path)
 
             expect(cmd).to receive(:system)
-              .with('bundle exec cap staging deploy -s branch=develop > log/failed-deploy.log') { |_|
+              .with('bundle exec cap staging deploy -q branch=develop > log/failed-deploy.log') { |_|
                 File.open(path + '/log/failed-deploy.log', 'w') do |f|
                   f.write "Bad deploy. Real bad."
                 end
