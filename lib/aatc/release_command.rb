@@ -1,4 +1,4 @@
-require 'byebug'
+require 'byebug' if RAILS_ENV != 'rbx'
 
 module Aatc
   class ReleaseCommand
@@ -29,6 +29,7 @@ module Aatc
       already_open = []
       @apps.each do |app_name|
         app    = apps_by_name[app_name]
+        git 'pull'
         status = app_status(app['path'])
         already_open << app_name if status.open_release
       end
@@ -112,18 +113,18 @@ module Aatc
             failed << app
           end
         end
+      end
 
-        failed.each do |error|
-          $stderr.puts error
-        end
-        if succeeded.empty?
-          fail "No apps were successfully released."
-        end
+      failed.each do |error|
+        $stderr.puts error
+      end
+      if succeeded.empty?
+        fail "No apps were successfully released."
+      end
 
-        puts "Successfully opened release #{@release}!"
-        unless failed.empty?
-          puts "Except for on #{failed.join(', ')}."
-        end
+      puts "Successfully opened release #{@release}!"
+      unless failed.empty?
+        puts "Except for on #{failed.join(', ')}."
       end
     end
 
@@ -419,7 +420,8 @@ module Aatc
     def successful_pull
       [
         successful_commit,
-        /Already up-to-date/
+        /Already up-to-date/,
+        /Couldn't find remote ref/
       ]
     end
 
@@ -431,7 +433,8 @@ module Aatc
       to_branch ||= branch
       [
         /Everything up-to-date/,
-        /\w+\.\.\w+\s+#{branch} -> #{to_branch}/
+        /\w+\.\.\w+\s+#{branch} -> #{to_branch}/,
+        /\* \[new branch\]/
       ]
     end
 
