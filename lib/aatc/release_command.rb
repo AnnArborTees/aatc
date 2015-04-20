@@ -1,4 +1,4 @@
-require 'byebug' if RAILS_ENV != 'rbx'
+require 'byebug' if RUBY_ENGINE != 'rbx'
 
 module Aatc
   class ReleaseCommand

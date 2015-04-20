@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'aatc'
 require 'aatc/common'
 require 'aatc/deploy_command'
-require 'byebug' if RAILS_ENV != 'rbx'
+require 'byebug' if RUBY_ENGINE != 'rbx'
 
 describe Aatc::DeployCommand, type: :command do
   describe '#run_deploy' do
